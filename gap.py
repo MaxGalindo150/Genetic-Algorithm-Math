@@ -1,3 +1,5 @@
+from re import M
+import time
 from string import punctuation
 import numpy as np
 import math
@@ -30,6 +32,7 @@ def fitness_all(P_matrix):
 #selection
 def selection(listfitness, P_matrix):
     max_value = max(listfitness)
+    index = np.argmax(listfitness)
     points_survivorsC = []
     points_survivors = []
     for i in range(len(listfitness)):
@@ -39,19 +42,21 @@ def selection(listfitness, P_matrix):
            points_survivorsC.append(str(int(10000*P_matrix[i,1])))
            points_survivors.append(P_matrix[i,0])
            points_survivors.append(P_matrix[i,1])
-    return points_survivorsC, points_survivors #surviving vectors are placed on a list 
+    return points_survivorsC, points_survivors, max_value, index #surviving vectors are placed on a list 
 
 
 #crossover
-def crossover(points_survivorC):
-    offspring = []
-    k1 = 0 
+def crossover(points_survivorC): #k1=0, -4, -8
+    offspring = []               #k2=0, 1, 2
+    k1 = 0                       #i=0, 1, 2 
     k2 = 0
     for i in range(int(len(points_survivorC)/2)):
         n = random.randint(0,4)
         if len(points_survivorC) == 2:
             k1 = -1
-            offspring.append(float(points_survivorC[i+k2][0:n]+points_survivorC[2*(i+1) + k1][n:len(points_survivorC[2*(i+1) + k1])]))
+            offspring.append(float(points_survivorC[i+k2]))
+            offspring.append(float(points_survivorC[2*(i+1) + k1]))
+               
         else:    
             offspring.append(float(points_survivorC[i+k2][0:n]+points_survivorC[2*(i+1) + k1][n:len(points_survivorC[2*(i+1) + k1])]))
             offspring.append(float(points_survivorC[i+1+k2][0:n]+points_survivorC[2*(i+1)+1+k1][n:len(points_survivorC[2*(i+1)+1+k1])]))
@@ -79,14 +84,19 @@ def integration(points_survivors, offspringM):
     return family 
 
 #family matrix
-def mf(family):
-    MF = np.zeros((int(len(family)/2),2))
+def mf(offspringM):
+    H = np.zeros((int(len(offspringM)/2),2))
     k=0
-    for j in range(int(len(family)/2)):
-        MF[j,0]=family[2*j]
-        MF[j,1]=family[j+k+1]
+    for j in range(int(len(offspringM)/2)):
+        H[j,0]=offspringM[2*j]
+        H[j,1]=offspringM[j+k+1]
         k=k+1
-    return MF
+    return H
+
+#best point
+def best(MF, index):
+    best_vector = np.array([MF[index,0],MF[index,1]])
+    return best_vector
 
 
 
@@ -94,40 +104,46 @@ def run():
     n_ind = int(input("Numero de individuos: "))
     lim_inf = float(input("Limite inferior de x y y: "))
     lim_sup = float(input("Limite superior de x y y: "))
-    P = population(n_ind, lim_inf, lim_sup)
-    print("Matriz inicial:")
-    print(P)
-    print()
-    print("Fitness de los vectores padre:")
-    listfitness = fitness_all(P)
-    print(listfitness)
-    print()
-    print("Mejores fitness:")
-    points_survivorsC, points_survivors = selection(listfitness, P)
-    print()
-    print(" Vectores seleccionados:")
-    print()
-    print(points_survivors)
-    print()
-    print(" Vectores seleccionados y preparados para cruzar:")
-    print(points_survivorsC)
-    print()
-    print("cruce:")
-    offspring = crossover(points_survivorsC)
-    print(offspring)
-    print()
-    print("Mutacion:")
-    offspringM = mutation(offspring)
-    print(offspringM)
-    print()
-    print("juntamos padres e hijos:")
-    family = integration(points_survivors, offspringM)
-    print(family)
-    print()
-    print("hacemos la matriz de la familia:")
-    MF = mf(family)
-    print(MF)
     
+    start = time.time()
+    P = population(n_ind, lim_inf, lim_sup)
+    max_fitness = 0
+    g = 0
+    
+
+    while abs(max_fitness-1) > 0.01:
+        print(P)    
+
+        g += 1 
+        
+        listfitness = fitness_all(P)
+    
+        points_survivorsC, points_survivors, max_fitness, indexfalse = selection(listfitness, P)
+        
+        offspring = crossover(points_survivorsC)
+        
+        offspringM = mutation(offspring)
+
+        family = integration(points_survivors, offspringM)        
+        
+        P = mf(family)
+        fit_son = fitness_all(P)
+        
+        x, y, z, index = selection(fit_son, P)
+        best_vector = best(P, index)
+        
+        
+
+    end = time.time()
+    print()
+    print(P)
+    best_vector = best(P, index)
+    print("Optimized point: ", best_vector)
+    print()
+    print("Optimized value: ", F(best_vector[0],best_vector[1]))
+    print()
+    print("Number of generations: ", g)
+    print("Time: ", (end-start))
 
 
 if __name__ == "__main__":
