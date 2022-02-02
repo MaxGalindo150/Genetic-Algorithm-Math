@@ -84,12 +84,12 @@ def integration(points_survivors, offspringM):
     return family 
 
 #family matrix
-def mf(offspringM):
-    H = np.zeros((int(len(offspringM)/2),2))
+def mf(family):
+    H = np.zeros((int(len(family)/2),2))
     k=0
-    for j in range(int(len(offspringM)/2)):
-        H[j,0]=offspringM[2*j]
-        H[j,1]=offspringM[j+k+1]
+    for j in range(int(len(family)/2)):
+        H[j,0]=family[2*j]
+        H[j,1]=family[j+k+1]
         k=k+1
     return H
 
