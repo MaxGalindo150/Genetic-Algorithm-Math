@@ -1,10 +1,13 @@
 from re import M
 import time
 from string import punctuation
+from turtle import color
 import numpy as np
 import math
 import random
 from scipy.stats import norm 
+import matplotlib.pyplot as plt
+from matplotlib import cm
 
 #function to optimize 
 def F(x,y):
@@ -17,6 +20,15 @@ def population(n_ind, lim_inf, lim_sup):
         P[i,0] = round(random.uniform(lim_inf, lim_sup),4) #componet x of vector i
         P[i,1] = round(random.uniform(lim_inf, lim_sup),4) #componet y of vector i
     return P #matrix of pupulation
+
+#points to graph
+def ptg(P_matrix):
+    x = []
+    y = []
+    for i in range(len(P_matrix)):
+        x.append(P_matrix[i,0])
+        y.append(P_matrix[i,1])
+    return x, y
 
 #fitness from one individual
 def fitness(x, y):
@@ -46,22 +58,27 @@ def selection(listfitness, P_matrix):
 
 
 #crossover
-def crossover(points_survivorC): #k1=0, -4, -8
-    offspring = []               #k2=0, 1, 2
-    k1 = 0                       #i=0, 1, 2 
+def crossover(points_survivorC): 
+    offspring = []
+    offspring0 = []               
+    k1 = 0                        
     k2 = 0
     for i in range(int(len(points_survivorC)/2)):
-        n = random.randint(0,4)
+        n = random.randint(1,4)
         if len(points_survivorC) == 2:
             k1 = -1
             offspring.append(float(points_survivorC[i+k2]))
             offspring.append(float(points_survivorC[2*(i+1) + k1]))
                
         else:    
-            offspring.append(float(points_survivorC[i+k2][0:n]+points_survivorC[2*(i+1) + k1][n:len(points_survivorC[2*(i+1) + k1])]))
-            offspring.append(float(points_survivorC[i+1+k2][0:n]+points_survivorC[2*(i+1)+1+k1][n:len(points_survivorC[2*(i+1)+1+k1])]))
-            k1 = k1-4
-            k2 = k2+1  
+            if len(points_survivorC[2*(i+1) + k1]) == 1 or len(points_survivorC[2*(i+1)+1+k1]) == 1:
+                offspring0.append(float(points_survivorC[i+k2]))
+                offspring0.append(float(points_survivorC[i+1+k2]))
+            else:    
+                offspring.append(float(points_survivorC[i+k2][0:n]+points_survivorC[2*(i+1) + k1][n:len(points_survivorC[2*(i+1) + k1])]))
+                offspring.append(float(points_survivorC[i+1+k2][0:n]+points_survivorC[2*(i+1)+1+k1][n:len(points_survivorC[2*(i+1)+1+k1])]))
+                k1 = k1-4
+                k2 = k2+1  
     if len(points_survivorC) == 2:
         pass
     else:
@@ -74,7 +91,8 @@ def mutation(offspring):
     offspringM = []
     for i in range(len(offspring)):
         x = random.uniform(-1, 1)
-        mut1 = 10000*round(norm.pdf(x, 1, 1),4)
+        n = random.randint(0,1)
+        mut1 = ((-1)**n)*10000*round(norm.pdf(x, 1, 1),4)
         offspringM.append(round((offspring[i] + mut1)/10000,4))
     return offspringM
 
@@ -110,9 +128,27 @@ def run():
     max_fitness = 0
     g = 0
     
+    s, r = ptg(P)
 
-    while abs(max_fitness-1) > 0.01:
-        print(P)    
+    x1 = np.linspace(-1, 1, 100)
+    y1 = np.linspace(-1, 1, 100)
+    x1, y1 = np.meshgrid(x1,y1)
+    z1 = F(x1,y1)
+
+    fig, ax= plt.subplots()
+    level_map = np.linspace(0,1,10)
+    
+    s, r = ptg(P)
+    cp = ax.contour(x1,y1,z1,levels = level_map, cmap = cm.cool)
+    plt.scatter(s,r, color="black")
+    plt.plot(0,0, marker="o", color="red")
+    plt.xlim(-1,1)
+    plt.ylim(-1,1)
+
+    
+    while abs(max_fitness-1) > 0.0001:
+
+        s, r = ptg(P)   
 
         g += 1 
         
@@ -136,14 +172,32 @@ def run():
 
     end = time.time()
     print()
-    print(P)
     best_vector = best(P, index)
     print("Optimized point: ", best_vector)
     print()
     print("Optimized value: ", F(best_vector[0],best_vector[1]))
     print()
     print("Number of generations: ", g)
-    print("Time: ", (end-start))
+    print("runtime: ", (end-start))
+    print()
+    print("ACCURACY: ", max_fitness*100, "%")
+    
+    x = np.linspace(-1, 1, 100)
+    y = np.linspace(-1, 1, 100)
+    x, y = np.meshgrid(x,y)
+    z = F(x,y)
+
+    fig2, ax2= plt.subplots()
+    level_map = np.linspace(0,1,10)
+    
+    s, r = ptg(P)
+    cp = ax2.contour(x,y,z,levels = level_map, cmap = cm.cool)
+    plt.scatter(s,r, color="black")
+    plt.plot(0,0, marker="o", color="red")
+    plt.plot(best_vector[0],best_vector[1], marker="o", color="blue")
+    plt.xlim(-1,1)
+    plt.ylim(-1,1)
+    plt.show()
 
 
 if __name__ == "__main__":
