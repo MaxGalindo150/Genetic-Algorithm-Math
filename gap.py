@@ -118,7 +118,7 @@ def best(MF, index):
 
 
 
-def run():
+"""def run():
     n_ind = int(input("Numero de individuos: "))
     lim_inf = float(input("Limite inferior de x y y: "))
     lim_sup = float(input("Limite superior de x y y: "))
@@ -180,7 +180,7 @@ def run():
     print("Number of generations: ", g)
     print("runtime: ", (end-start))
     print()
-    print("ACCURACY: ", max_fitness*100, "%")
+    print("Error: ", np.linalg.norm(best_vector)*100, "%")
     
     x = np.linspace(-1, 1, 100)
     y = np.linspace(-1, 1, 100)
@@ -197,11 +197,11 @@ def run():
     plt.plot(best_vector[0],best_vector[1], marker="o", color="blue")
     plt.xlim(-1,1)
     plt.ylim(-1,1)
-    plt.show()
+    plt.show() """
 
 
-if __name__ == "__main__":
-    run()
+"""if __name__ == "__main__":
+    run()"""
 
 
 
